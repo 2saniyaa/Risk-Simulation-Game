@@ -1,0 +1,3676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Risk Simulation Game</title>
+    <!-- Add SheetJS library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            /* Update to lighter violet theme */
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+            background-attachment: fixed;
+            position: relative;
+            color: #1e1b4b;
+            /* Enhanced background animation */
+            @keyframes gradientShift {
+                0% {
+                    background-position: 0% 50%;
+                    background-size: 100% 100%;
+                }
+                50% {
+                    background-position: 100% 50%;
+                    background-size: 150% 150%;
+                }
+                100% {
+                    background-position: 0% 50%;
+                    background-size: 100% 100%;
+                }
+            }
+
+            /* Add floating animation */
+            @keyframes float {
+                0% { transform: translateY(0px); }
+                50% { transform: translateY(-10px); }
+                100% { transform: translateY(0px); }
+            }
+
+            /* Add pulse animation */
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+            }
+
+            /* Add shimmer effect */
+            @keyframes shimmer {
+                0% { background-position: -200% 0; }
+                100% { background-position: 200% 0; }
+            }
+
+            /* Add glow animation */
+            @keyframes glow {
+                0% { box-shadow: 0 0 5px rgba(139, 92, 246, 0.2); }
+                50% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.4); }
+                100% { box-shadow: 0 0 5px rgba(139, 92, 246, 0.2); }
+            }
+
+            animation: gradientShift 15s ease infinite;
+            background-size: 200% 200%;
+        }
+
+        /* Update gaming icons overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cpath fill='%238b5cf6' fill-opacity='0.1' d='M30 0C13.4 0 0 13.4 0 30c0 16.6 13.4 30 30 30s30-13.4 30-30C60 13.4 46.6 0 30 0zm0 45c-8.3 0-15-6.7-15-15s6.7-15 15-15 15 6.7 15 15-6.7 15-15 15z'/%3E%3C/svg%3E");
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(139, 92, 246, 0.15);
+            width: 100%;
+            box-sizing: border-box;
+            position: relative;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            animation: glow 3s ease-in-out infinite;
+        }
+
+        /* Update button styles for violet theme */
+        button {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(139, 92, 246, 0.3);
+            background: linear-gradient(135deg, #9d70ff, #8b5cf6);
+            animation: pulse 1s ease infinite;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(255, 255, 255, 0.1),
+                transparent
+            );
+            transform: rotate(45deg);
+            animation: shimmer 3s linear infinite;
+        }
+
+        /* Update form elements for violet theme */
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid rgba(139, 92, 246, 0.2);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+            color: #1e1b4b;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        /* Update headings for violet theme */
+        h1, h2, h3, h4 {
+            color: #4c1d95;
+            text-shadow: 1px 1px 2px rgba(139, 92, 246, 0.1);
+            position: relative;
+            display: inline-block;
+        }
+
+        h1::after, h2::after, h3::after, h4::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -2px;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, #8b5cf6, transparent);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        h1:hover::after, h2:hover::after, h3:hover::after, h4:hover::after {
+            transform: scaleX(1);
+        }
+
+        /* Update progress bars for violet theme */
+        .progress-bar {
+            background: rgba(243, 232, 255, 0.9);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .progress {
+            background: linear-gradient(90deg, #8b5cf6, #7c3aed);
+            box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
+                transparent
+            );
+            animation: shimmer 2s linear infinite;
+        }
+
+        /* Update risk cards for violet theme */
+        .risk-event {
+            background: rgba(255, 255, 255, 0.9);
+            border-left: 6px solid #8b5cf6;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.1);
+            color: #1e1b4b;
+            transition: all 0.3s ease;
+            animation: float 6s ease-in-out infinite;
+            animation-delay: calc(var(--animation-order, 0) * 0.1s);
+        }
+
+        .risk-event:hover {
+            transform: translateY(-5px) scale(1.02);
+        }
+
+        /* Update metric cards for violet theme */
+        .metric-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(243, 232, 255, 0.85));
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.1);
+            color: #1e1b4b;
+            animation: float 6s ease-in-out infinite;
+            transition: transform 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px) scale(1.02);
+        }
+
+        .metric-title {
+            color: #4c1d95;
+        }
+
+        .metric-label {
+            color: #6b7280;
+        }
+
+        .metric-detail {
+            color: #6b7280;
+        }
+
+        /* Update table styles for violet theme */
+        .risk-table {
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.1);
+        }
+
+        .risk-table th {
+            background-color: #8b5cf6;
+            color: white;
+        }
+
+        .risk-table td {
+            color: #1e1b4b;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .risk-table tr:nth-child(even) {
+            background-color: rgba(243, 232, 255, 0.3);
+        }
+
+        .risk-table tr:hover {
+            background-color: rgba(139, 92, 246, 0.1);
+        }
+
+        /* Add subtle animation to the background */
+        @keyframes gradientShift {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 100% 100%; }
+        }
+
+        body {
+            animation: gradientShift 20s ease infinite alternate;
+            background-size: 200% 200%;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .hidden {
+            display: none;
+        }
+        .risk-list {
+            margin-top: 20px;
+        }
+        .risk-item {
+            background-color: #f9f9f9;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 24px;
+            background-color: #f0f0f0;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 10px 0;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .progress {
+            height: 100%;
+            background-color: #4CAF50;
+            transition: width 0.3s ease;
+        }
+        .risk-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .risk-table th,
+        .risk-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .risk-table th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .risk-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .risk-table tr:hover {
+            background-color: #f5f5f5;
+        }
+        .delete-btn {
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .delete-btn:hover {
+            background-color: #cc0000;
+        }
+        .risk-level {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .risk-level.low { background-color: #4CAF50; color: white; }
+        .risk-level.medium { background-color: #FFC107; color: black; }
+        .risk-level.high { background-color: #FF5722; color: white; }
+        .risk-level.critical { background-color: #f44336; color: white; }
+        /* Add styles for export button */
+        .export-btn {
+            background-color: #2196F3;
+            color: white;
+            padding: 15px 40px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            font-weight: bold;
+        }
+        
+        .export-btn:hover {
+            background-color: #1976D2;
+            transform: scale(1.05);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        /* Add these new styles */
+        .celebration {
+            text-align: center;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .celebration.success {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border-radius: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .celebration.failure {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+            color: white;
+            border-radius: 8px;
+        }
+
+        .celebration-icon {
+            font-size: 48px;
+            margin: 20px 0;
+            animation: bounce 1s infinite;
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            position: absolute;
+            animation: confetti-fall 3s linear forwards;
+            z-index: 1000;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .result-message {
+            font-size: 24px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .score-display {
+            font-size: 48px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            color: #4CAF50;
+        }
+
+        .score-details {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        /* Add these new styles */
+        .budget-chart {
+            width: 100%;
+            height: 200px;
+            margin: 20px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .budget-bar {
+            height: 30px;
+            margin: 5px 0;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .budget-bar.initial { background-color: #4CAF50; }
+        .budget-bar.remaining { background-color: #2196F3; }
+        .budget-bar.contingency { background-color: #FFC107; }
+        .budget-bar.used { background-color: #f44336; }
+
+        .budget-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .budget-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .budget-card h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .budget-card .amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .budget-card .amount.negative {
+            color: #f44336;
+        }
+
+        .error-message {
+            color: #f44336;
+            margin: 10px 0;
+            padding: 10px;
+            background: #ffebee;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .risk-count {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Add these new styles */
+        .back-btn {
+            background-color: #9e9e9e;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .back-btn:hover {
+            background-color: #757575;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* Add these new styles */
+        .section-instruction {
+            background-color: #e3f2fd;
+            border-left: 6px solid #2196F3;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+
+        .section-instruction h3 {
+            margin: 0 0 10px 0;
+            color: #1976D2;
+        }
+
+        .section-instruction p {
+            margin: 0;
+            color: #333;
+        }
+
+        .validation-message {
+            color: #f44336;
+            margin: 10px 0;
+            padding: 10px;
+            background: #ffebee;
+            border-radius: 4px;
+            display: none;
+        }
+
+        /* Add styles for edit button */
+        .edit-btn {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .edit-btn:hover {
+            background-color: #1976D2;
+        }
+
+        .simulation-section {
+            position: relative;
+            padding: 30px;
+            margin-top: 30px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .simulation-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 40px 0;
+            padding: 30px;
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .next-turn-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 40px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            font-weight: bold;
+        }
+
+        .next-turn-btn:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+
+        .simulation-info {
+            margin-bottom: 40px;
+            padding: 30px;
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .progress-container {
+            margin: 25px 0;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .risk-events {
+            margin-top: 30px;
+            padding: 25px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .risk-event {
+            padding: 25px;
+            margin-bottom: 20px;
+            background-color: #f8f9fa;
+            border-left: 6px solid #4CAF50;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .response-options {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f1f8e9;
+            border-radius: 8px;
+            border-left: 6px solid #7cb342;
+        }
+
+        .response-select {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        .respond-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .respond-btn:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+
+        .response-result {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #e8f5e9;
+            border-radius: 6px;
+            display: none;
+        }
+
+        /* Add the styles for the print button */
+        .print-btn {
+            background-color: #673AB7;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .print-btn:hover {
+            background-color: #5E35B1;
+        }
+        
+        .print-btn::before {
+            content: "🖨️";
+            font-size: 1.2em;
+        }
+        
+        @media print {
+            /* Hide everything by default */
+            body * {
+                visibility: hidden;
+            }
+            
+            /* Show only the results section */
+            #results, #results *, 
+            #print-header, #print-header *,
+            #print-summary, #print-summary * {
+                visibility: visible !important;
+            }
+            
+            /* Position the results section at the top */
+            #results {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 20px;
+                margin: 0;
+                background-color: white !important;
+                color: black !important;
+            }
+            
+            /* Hide buttons during print */
+            .button-group, .print-btn, .view-leaderboard-btn, .reset-btn {
+                display: none !important;
+            }
+            
+            /* Style adjustments for print */
+            .results-container {
+                box-shadow: none !important;
+                border: 1px solid #ddd !important;
+                margin: 20px 0 !important;
+            }
+            
+            .grade-badge {
+                border: 1px solid #000 !important;
+                color: #000 !important;
+                background-color: #f0f0f0 !important;
+            }
+            
+            /* Prevent sections from breaking across pages */
+            .performance-summary,
+            .recommendations-section,
+            .analysis-grid {
+                page-break-inside: avoid;
+            }
+            
+            /* Remove animations */
+            .animate-pop, .animate-bounce, .animate-count, 
+            .animate-fade-in, .animate-slide-in {
+                animation: none !important;
+            }
+            
+            /* Set page margins */
+            @page {
+                margin: 0.75in;
+                size: portrait;
+            }
+            
+            /* Print-specific text colors */
+            h1, h2, h3, h4, p {
+                color: black !important;
+            }
+        }
+
+        .response-options {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f1f8e9;
+            border-radius: 8px;
+            border-left: 6px solid #7cb342;
+        }
+        
+        .response-options h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #33691e;
+        }
+        
+        .response-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .response-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        
+        .response-btn.mitigate {
+            background-color: #1565c0;
+            color: white;
+        }
+        
+        .response-btn.mitigate:hover {
+            background-color: #0d47a1;
+        }
+        
+        .response-btn.avoid {
+            background-color: #d32f2f;
+            color: white;
+        }
+        
+        .response-btn.avoid:hover {
+            background-color: #b71c1c;
+        }
+        
+        .response-btn.transfer {
+            background-color: #f57c00;
+            color: white;
+        }
+        
+        .response-btn.transfer:hover {
+            background-color: #e65100;
+        }
+        
+        .response-btn.accept {
+            background-color: #388e3c;
+            color: white;
+        }
+        
+        .response-btn.accept:hover {
+            background-color: #2e7d32;
+        }
+        
+        .response-result {
+            margin-top: 10px;
+            padding: 8px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            font-weight: bold;
+            display: none;
+        }
+        
+        .risk-event {
+            position: relative;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        /* Style for the selection dropdown */
+        .response-select {
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background-color: #f5f5f5;
+            font-size: 16px;
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 10px;
+        }
+        
+        .response-select option {
+            padding: 10px;
+        }
+        
+        .respond-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .respond-btn:hover {
+            background-color: #45a049;
+        }
+        
+        .event-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .event-status.pending {
+            background-color: #ffeb3b;
+            color: #333;
+        }
+        
+        .event-status.responded {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        h1 {
+            font-size: 36px;
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        h2 {
+            font-size: 28px;
+            color: #444;
+            margin-bottom: 25px;
+        }
+        h3 {
+            font-size: 24px;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        h4 {
+            font-size: 20px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .turn-stats {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .stat-box {
+            flex: 1;
+            margin: 0 10px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stat-label {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stat-value.budget {
+            color: #4CAF50;
+        }
+
+        .stat-value.quality {
+            color: #2196F3;
+        }
+
+        .stat-value.negative {
+            color: #f44336;
+        }
+
+        .turn-updates {
+            display: none;
+        }
+
+        .update-log {
+            display: none;
+        }
+
+        .update-entry {
+            display: none;
+        }
+
+        .project-overview {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .overview-item {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .overview-item h3 {
+            color: #2196F3;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        .overview-item p {
+            margin: 10px 0;
+            color: #333;
+        }
+
+        .progress-overview {
+            margin: 30px 0;
+        }
+
+        .start-simulation-btn {
+            background-color: #2196F3;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            display: block;
+            margin: 20px auto;
+        }
+
+        .start-simulation-btn:hover {
+            background-color: #1976D2;
+            transform: scale(1.05);
+        }
+
+        /* Add at the end of the existing styles */
+        .help-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .help-button:hover {
+            transform: scale(1.1);
+            background-color: #1976D2;
+        }
+
+        .help-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1001;
+            overflow-y: auto;
+        }
+
+        .help-content {
+            background-color: rgba(255, 255, 255, 0.95);
+            color: #1e1b4b;
+            margin: 40px auto;
+            padding: 40px;
+            width: 90%;
+            max-width: 800px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .close-help {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            color: #666;
+            cursor: pointer;
+            border: none;
+            background: none;
+            padding: 5px;
+            transition: color 0.2s;
+        }
+
+        .close-help:hover {
+            color: #333;
+        }
+
+        .help-content h1 {
+            color: #2196F3;
+            margin-bottom: 30px;
+        }
+
+        .help-content h2 {
+            color: #1976D2;
+            margin: 25px 0 15px;
+        }
+
+        .help-content ul {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+
+        .help-content li {
+            margin: 8px 0;
+        }
+
+        .help-section {
+            background-color: rgba(243, 232, 255, 0.3);
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #2196F3;
+        }
+
+        .help-tip {
+            background-color: rgba(139, 92, 246, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .help-tip h3 {
+            color: #1976D2;
+            margin-top: 0;
+        }
+
+        /* Replace game log styles with simplified leaderboard styles */
+        .game-log-button {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background-color: #673AB7;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .game-log-button:hover {
+            transform: scale(1.05);
+            background-color: #5E35B1;
+        }
+
+        .game-log-button::before {
+            content: "🏆";
+            font-size: 1.2em;
+        }
+
+        .game-log-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1001;
+            overflow-y: auto;
+        }
+
+        .game-log-content {
+            background-color: rgba(255, 255, 255, 0.95);
+            color: #1e1b4b;
+            margin: 40px auto;
+            padding: 40px;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .leaderboard-header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #673AB7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .clear-leaderboard {
+            background-color: #dc3545;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background-color 0.2s;
+        }
+
+        .clear-leaderboard:hover {
+            background-color: #c82333;
+        }
+
+        .clear-leaderboard::before {
+            content: "🗑️";
+            font-size: 1.1em;
+        }
+
+        .confirm-dialog {
+            background-color: rgba(255, 255, 255, 0.95);
+            color: #1e1b4b;
+            box-shadow: 0 8px 32px rgba(139, 92, 246, 0.2);
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 24px;
+            border-radius: 8px;
+            z-index: 1002;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .confirm-dialog h3 {
+            color: #dc3545;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        .confirm-dialog p {
+            margin-bottom: 24px;
+            color: #666;
+        }
+
+        .dialog-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .dialog-buttons button {
+            padding: 8px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+        .confirm-clear {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .confirm-clear:hover {
+            background-color: #c82333;
+        }
+
+        .cancel-clear {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .cancel-clear:hover {
+            background-color: #5a6268;
+        }
+
+        .leaderboard-stats {
+            background-color: rgba(243, 232, 255, 0.3);
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #673AB7;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .leaderboard-table th {
+            background-color: #8b5cf6;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .leaderboard-table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .leaderboard-table tr:nth-child(even) {
+            background-color: rgba(243, 232, 255, 0.3);
+        }
+
+        .leaderboard-table tr:hover {
+            background-color: rgba(139, 92, 246, 0.1);
+        }
+
+        .score-cell {
+            font-weight: bold;
+        }
+
+        .grade-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 14px;
+            min-width: 30px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(139, 92, 246, 0.1);
+        }
+
+        .grade-A { background-color: #4CAF50; color: white; }
+        .grade-B { background-color: #8BC34A; color: white; }
+        .grade-C { background-color: #FFC107; color: black; }
+        .grade-D { background-color: #FF9800; color: white; }
+        .grade-F { background-color: #f44336; color: white; }
+
+        .date-cell {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .view-leaderboard-btn {
+            background-color: #673AB7;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .view-leaderboard-btn:hover {
+            background-color: #5E35B1;
+        }
+
+        .view-leaderboard-btn::before {
+            content: "🏆";
+            font-size: 1.2em;
+        }
+
+        .results-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+
+        .animate-pop {
+            animation: pop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .animate-bounce {
+            animation: bounce 1s ease infinite;
+        }
+
+        .animate-count {
+            animation: countUp 2s ease-out;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 1s ease-in;
+        }
+
+        .animate-slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes countUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            0% { opacity: 0; transform: translateX(-20px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+
+        .metric-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background: linear-gradient(145deg, #ffffff, #f5f5f5);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .metric-icon {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .metric-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .metric-value.positive {
+            color: #4CAF50;
+        }
+
+        .metric-value.negative {
+            color: #f44336;
+        }
+
+        .metric-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .metric-detail {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .analysis-item {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .analysis-item.success {
+            border-left: 4px solid #4CAF50;
+        }
+
+        .analysis-item.warning {
+            border-left: 4px solid #ff9800;
+        }
+
+        .progress-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-circle-bar {
+            width: 100%;
+            height: 100%;
+            transform: rotate(0deg);
+            transition: transform 1s ease;
+        }
+
+        .progress-circle-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .recommendations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .recommendation-card {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #2196F3;
+        }
+
+        .recommendation-card h4 {
+            color: #2196F3;
+            margin-top: 0;
+        }
+
+        .recommendation-card p {
+            color: #666;
+            margin: 10px 0 0 0;
+        }
+
+        @media print {
+            .button-group {
+                display: none !important;
+            }
+            .animate-pop, .animate-bounce, .animate-count, 
+            .animate-fade-in, .animate-slide-in {
+                animation: none !important;
+            }
+        }
+
+        /* Add warning message animation */
+        @keyframes warningShake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+            20%, 40%, 60%, 80% { transform: translateX(2px); }
+        }
+
+        @keyframes warningPulse {
+            0%, 100% { background-color: rgba(255, 62, 29, 0.1); }
+            50% { background-color: rgba(255, 62, 29, 0.2); }
+        }
+
+        .error-message {
+            color: #dc2626;
+            margin: 15px 0;
+            padding: 15px 20px;
+            background-color: rgba(255, 62, 29, 0.1);
+            border-left: 4px solid #dc2626;
+            border-radius: 6px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: warningShake 0.5s ease-in-out, warningPulse 2s infinite;
+            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);
+        }
+
+        .error-message::before {
+            content: '⚠️';
+            font-size: 1.2em;
+        }
+
+        .error-message.show {
+            display: flex;
+            animation: warningShake 0.5s ease-in-out;
+        }
+
+        .risk-count {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .risk-count::before {
+            content: '📋';
+            font-size: 1.2em;
+        }
+
+        #riskCounter {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        #riskCounter.warning {
+            color: #fef08a;
+            animation: pulse 1s ease infinite;
+        }
+
+        .response-selection {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .custom-response {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .response-input-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .custom-response {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+        }
+
+        #riskResponseType {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Add the help button and modal right after body tag -->
+    <button class="help-button" onclick="showHelp()">?</button>
+    <div id="helpModal" class="help-modal">
+        <div class="help-content">
+            <button class="close-help" onclick="hideHelp()">&times;</button>
+            <h1>Risk Simulation Game Instructions - Software Engineering</h1>
+            <p>Welcome to the Risk Simulation Game for Software Engineering! In this interactive simulation, you assume the role of a project manager responsible for delivering a successful software project by identifying and managing potential risks.</p>
+
+            <div class="help-section">
+                <h2>How It Works</h2>
+                <h3>Project Setup:</h3>
+                <ul>
+                    <li>Project Name: Enter a unique name for your software project.</li>
+                    <li>Project Budget: Specify the total budget for your project in €k.</li>
+                    <li>Project Duration: Set the project duration in months.</li>
+                    <li>Risk Contingency Budget: Allocate a percentage of your total budget to handle unforeseen risks.</li>
+                </ul>
+            </div>
+
+            <div class="help-section">
+                <h2>Adding Risks:</h2>
+                <h3>Risk Details: Add at least five risks by providing:</h3>
+                <ul>
+                    <li>Risk Name: A descriptive name (e.g., "Requirement Creep").</li>
+                    <li>Risk Type: Categorize the risk (e.g., Technical, Operational, Security, Scope, Management).</li>
+                    <li>Likelihood: Rate the probability of occurrence (1-5).</li>
+                    <li>Impact: Assess the potential impact (1-5).</li>
+                    <li>Minimum Cost if Occurs (€): Estimate the minimum cost if the risk materializes.</li>
+                    <li>Cost as % of Budget: Specify the cost impact as a percentage of the total budget.</li>
+                    <li>Risk Response Description: Describe your strategy to address the risk.</li>
+                </ul>
+            </div>
+
+            <div class="help-section">
+                <h2>Simulation Turns:</h2>
+                <p>The simulation advances in turns (each turn representing one month of the project).</p>
+                <ul>
+                    <li>Baseline Costs: Each turn, a portion of your budget is deducted as the baseline cost.</li>
+                    <li>Risk Events: Random risk events may occur. When a risk occurs, choose a response:</li>
+                    <ul>
+                        <li>Mitigate: Reduce the risk's likelihood or impact.</li>
+                        <li>Avoid: Alter project plans to eliminate the risk.</li>
+                        <li>Transfer: Shift the risk to a third party (e.g., through outsourcing or insurance).</li>
+                        <li>Accept: Proceed without additional measures.</li>
+                    </ul>
+                </ul>
+            </div>
+
+            <div class="help-section">
+                <h2>Project Status Tracking:</h2>
+                <ul>
+                    <li>Budget Remaining: Monitors your available funds.</li>
+                    <li>Project Quality: Reflects the overall quality of your software product.</li>
+                    <li>Risk Contingency Remaining: Shows the funds reserved for handling risks.</li>
+                </ul>
+            </div>
+
+            <div class="help-section">
+                <h2>Scoring System:</h2>
+                <p>Your final score is based on:</p>
+                <ul>
+                    <li>Budget Remaining (40%)</li>
+                    <li>Project Quality (40%)</li>
+                    <li>Risk Contingency Remaining (20%)</li>
+                </ul>
+                <p>A higher score indicates better risk management and overall project success.</p>
+            </div>
+
+            <div class="help-section">
+                <h2>Additional Features:</h2>
+                <ul>
+                    <li>Exporting Risk Register: You can export your Risk Register to an Excel file at any time for further analysis.</li>
+                    <li>Final Results: At simulation end, you'll receive a summary of your performance, including detailed metrics and an overall score.</li>
+                </ul>
+            </div>
+
+            <div class="help-tip">
+                <h3>Tips for Success</h3>
+                <ul>
+                    <li>Diversify Your Risk Responses: Not every risk is managed the same way—choose the response that best fits the situation.</li>
+                    <li>Monitor Your Budget and Quality: Keep a close eye on your financial and quality metrics throughout the project.</li>
+                    <li>Plan for the Unexpected: Allocate sufficient funds in your risk contingency to handle unforeseen challenges.</li>
+                </ul>
+            </div>
+
+            <p style="text-align: center; margin-top: 30px; font-weight: bold;">Good luck managing your software project and refining your risk management skills!</p>
+        </div>
+    </div>
+
+    <!-- Replace game log modal content -->
+    <button class="game-log-button" onclick="showGameLog()">Leaderboard</button>
+    <div id="gameLogModal" class="game-log-modal">
+        <div class="game-log-content">
+            <button class="close-help" onclick="hideGameLog()">&times;</button>
+            <div class="leaderboard-header">
+                <h2>🏆 Risk Management Leaderboard</h2>
+                <button class="clear-leaderboard" onclick="showClearConfirmation()">Clear History</button>
+            </div>
+            <div class="leaderboard-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalGames">0</div>
+                    <div class="stat-label">Games Played</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="avgScore">0%</div>
+                    <div class="stat-label">Average Score</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="topScore">0%</div>
+                    <div class="stat-label">Top Score</div>
+                </div>
+            </div>
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Project</th>
+                        <th>Grade</th>
+                        <th>Score</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardEntries">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add the confirmation dialog -->
+    <div id="clearConfirmDialog" class="confirm-dialog">
+        <h3>⚠️ Clear Leaderboard History?</h3>
+        <p>This will permanently delete all game records. This action cannot be undone.</p>
+        <div class="dialog-buttons">
+            <button class="cancel-clear" onclick="hideClearConfirmation()">Cancel</button>
+            <button class="confirm-clear" onclick="clearLeaderboard()">Clear History</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>Risk Simulation Game</h1>
+        
+        <!-- Setup Section -->
+        <div id="setup">
+            <div class="section-instruction">
+                <h3>Project Setup Instructions</h3>
+                <p>Before starting the game, please provide the following details:</p>
+                <ul>
+                    <li>Enter your name</li>
+                    <li>Enter a descriptive project name</li>
+                    <li>Set the project budget in thousands of euros (€k)</li>
+                    <li>Specify the project duration in months</li>
+                    <li>Define the risk contingency percentage (recommended: 10%)</li>
+                </ul>
+            </div>
+            <h2>Project Setup</h2>
+            <div class="validation-message" id="setupValidation">Please fill in all project details before proceeding.</div>
+            <div class="form-group">
+                <label for="userName">Your Name: <span class="required">*</span></label>
+                <input type="text" id="userName" required placeholder="Enter your name">
+            </div>
+            <div class="form-group">
+                <label for="projectName">Project Name:</label>
+                <input type="text" id="projectName" required>
+            </div>
+            <div class="form-group">
+                <label for="projectBudget">Project Budget (€k):</label>
+                <input type="number" id="projectBudget" value="100" required>
+            </div>
+            <div class="form-group">
+                <label for="projectDuration">Project Duration (months):</label>
+                <input type="number" id="projectDuration" value="24" required>
+            </div>
+            <div class="form-group">
+                <label for="riskContingency">Risk Contingency (%):</label>
+                <input type="number" id="riskContingency" value="10" required>
+            </div>
+            <button onclick="startGame()">Start Game</button>
+        </div>
+
+        <!-- Risk Input Section -->
+        <div id="riskInput" class="hidden">
+            <div class="section-instruction">
+                <h3>Risk Assessment Instructions</h3>
+                <p>To add a risk to your project, please provide the following information:</p>
+                <ul>
+                    <li>Give your risk a clear, descriptive name</li>
+                    <li>Select the appropriate risk type</li>
+                    <li>Rate the likelihood (1-5) and impact (1-5)</li>
+                    <li>Specify the minimum cost and percentage of budget</li>
+                    <li>Choose an appropriate risk response strategy</li>
+                </ul>
+                <p><strong>Note:</strong> You must add at least 5 risks before starting the simulation.</p>
+            </div>
+            <h2>Add Risk</h2>
+            <div class="risk-count">Risks Added: <span id="riskCounter">0</span>/5</div>
+            <div class="error-message" id="riskError">
+                ⚠️ Important: You need to add at least 5 risks before proceeding with the simulation.
+            </div>
+            <div class="form-group">
+                <label for="riskName">Risk Name:</label>
+                <input type="text" id="riskName" required>
+            </div>
+            <div class="form-group">
+                <label for="riskType">Risk Type:</label>
+                <select id="riskType" required>
+                    <option value="Technical">Technical</option>
+                    <option value="Operational">Operational</option>
+                    <option value="Security">Security</option>
+                    <option value="Scope">Scope</option>
+                    <option value="Management">Management</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="likelihood">Likelihood (1-5):</label>
+                <input type="number" id="likelihood" min="1" max="5" value="3" required>
+            </div>
+            <div class="form-group">
+                <label for="impact">Impact (1-5):</label>
+                <input type="number" id="impact" min="1" max="5" value="3" required>
+            </div>
+            <div class="form-group">
+                <label for="minCost">Minimum Cost (€):</label>
+                <input type="number" id="minCost" value="5000" required>
+            </div>
+            <div class="form-group">
+                <label for="costPercentage">Cost (% of Budget):</label>
+                <input type="number" id="costPercentage" value="5" required>
+            </div>
+            <div class="form-group">
+                <label for="riskResponse">Risk Response:</label>
+                <div class="response-input-container">
+                    <select id="riskResponseType" onchange="toggleCustomResponse()">
+                        <option value="predefined">Choose from predefined responses</option>
+                        <option value="custom">Write custom response</option>
+                    </select>
+                    <select id="riskResponse" class="predefined-response">
+                        <option value="Hire additional technical experts">Hire additional technical experts</option>
+                        <option value="Implement strict change control process">Implement strict change control process</option>
+                        <option value="Develop knowledge transfer plan">Develop knowledge transfer plan</option>
+                        <option value="Implement security protocols and regular audits">Implement security protocols and regular audits</option>
+                        <option value="Establish resource management plan">Establish resource management plan</option>
+                    </select>
+                    <input type="text" id="customResponse" class="custom-response hidden" placeholder="Enter your custom risk response strategy...">
+                </div>
+            </div>
+            <div class="button-container">
+                <button class="back-btn" onclick="goBack()">Back</button>
+                <button onclick="addRisk()">Add Risk</button>
+            </div>
+        </div>
+
+        <!-- Risk Register Section -->
+        <div id="riskRegister" class="hidden">
+            <div class="section-instruction">
+                <h3>Risk Register Overview</h3>
+                <p>This section displays all risks you've added to your project. You can:</p>
+                <ul>
+                    <li>Review all identified risks and their details</li>
+                    <li>Delete risks if needed</li>
+                    <li>Export the risk register to Excel</li>
+                    <li>Start the simulation when ready</li>
+                </ul>
+            </div>
+            <h2>Risk Register</h2>
+            <div class="button-group">
+                <button onclick="startSimulation()">Start Simulation</button>
+                <button class="export-btn" onclick="exportToExcel()">Export to Excel</button>
+            </div>
+            <table class="risk-table">
+                <thead>
+                    <tr>
+                        <th>Risk Name</th>
+                        <th>Type</th>
+                        <th>Likelihood</th>
+                        <th>Impact</th>
+                        <th>Risk Score</th>
+                        <th>Risk Level</th>
+                        <th>Min Cost (€)</th>
+                        <th>Cost (% of Budget)</th>
+                        <th>Response</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="riskTableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Simulation Section -->
+        <div id="simulation" class="hidden simulation-section">
+            <div class="section-instruction">
+                <h3>Simulation Progress</h3>
+                <p>Monitor your project's progress and handle risk events as they occur.</p>
+            </div>
+
+            <div class="simulation-info">
+                <div id="turnInfo"></div>
+                
+                <div class="progress-container">
+                    <div class="progress-label">
+                        <span>Budget Progress</span>
+                        <span id="budgetLabel"></span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="budgetProgress" class="progress"></div>
+                    </div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-label">
+                        <span>Quality Progress</span>
+                        <span id="qualityLabel"></span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="qualityProgress" class="progress"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="risk-events" id="riskEvents">
+                <h3>Risk Events</h3>
+                <!-- Risk events will be added here dynamically -->
+            </div>
+
+            <div class="simulation-controls">
+                <button class="next-turn-btn" onclick="nextTurn()">Next Turn</button>
+                <button class="export-btn" onclick="exportToExcel()">Export to Excel</button>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="hidden">
+            <div class="section-instruction">
+                <h3>Results Overview</h3>
+                <p>Your project performance is evaluated based on:</p>
+                <ul>
+                    <li>Budget management efficiency</li>
+                    <li>Project quality maintenance</li>
+                    <li>Risk contingency utilization</li>
+                    <li>Overall project completion</li>
+                </ul>
+            </div>
+            <h2>Game Results</h2>
+            <div id="celebration" class="celebration"></div>
+            <div id="finalScore" class="score-display"></div>
+            <div id="scoreDetails" class="score-details"></div>
+            <div id="scoreHistory" class="score-history"></div>
+            
+            <!-- Add the print results button -->
+            <div class="button-group">
+                <button onclick="resetGame()">Play Again</button>
+                <button class="print-btn" onclick="printResults()">Print Results</button>
+                <button onclick="showGameLog()" class="view-leaderboard-btn">View Leaderboard</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.startGame = function() {
+            const userName = document.getElementById('userName').value.trim();
+            if (!userName) {
+                document.getElementById('setupValidation').style.display = 'block';
+                document.getElementById('setupValidation').textContent = 'Please enter your name before proceeding.';
+                return;
+            }
+            const projectName = document.getElementById('projectName').value;
+            const budget = parseFloat(document.getElementById('projectBudget').value);
+            const duration = parseInt(document.getElementById('projectDuration').value);
+            const riskContingency = parseFloat(document.getElementById('riskContingency').value);
+
+            // Validate setup form
+            if (!userName || !projectName || !budget || !duration || !riskContingency) {
+                document.getElementById('setupValidation').style.display = 'block';
+                return;
+            }
+
+            // Hide validation message
+            document.getElementById('setupValidation').style.display = 'none';
+
+            // Initialize game state
+            window.gameState = {
+                userName: userName,
+                project: {
+                    name: projectName,
+                    budget: budget,
+                    duration: duration,
+                    riskContingency: (budget * riskContingency) / 100,
+                    remainingBudget: budget,
+                    quality: 100,
+                    currentTurn: 0
+                },
+                risks: []
+            };
+
+            // Add predefined risks if project name contains "risk" (case insensitive)
+            if (projectName.toLowerCase().includes('risk')) {
+                const predefinedRisks = [
+                    {
+                        name: "Technical Complexity",
+                        type: "Technical",
+                        likelihood: 4,
+                        impact: 5,
+                        minCost: 10000,
+                        costPercentage: 8,
+                        response: "Hire additional technical experts",
+                        id: Date.now() + 1
+                    },
+                    {
+                        name: "Scope Creep",
+                        type: "Scope",
+                        likelihood: 3,
+                        impact: 4,
+                        minCost: 8000,
+                        costPercentage: 6,
+                        response: "Implement strict change control process",
+                        id: Date.now() + 2
+                    },
+                    {
+                        name: "Team Turnover",
+                        type: "Management",
+                        likelihood: 2,
+                        impact: 3,
+                        minCost: 5000,
+                        costPercentage: 4,
+                        response: "Develop knowledge transfer plan",
+                        id: Date.now() + 3
+                    },
+                    {
+                        name: "Security Breach",
+                        type: "Security",
+                        likelihood: 2,
+                        impact: 5,
+                        minCost: 15000,
+                        costPercentage: 10,
+                        response: "Implement security protocols and regular audits",
+                        id: Date.now() + 4
+                    },
+                    {
+                        name: "Resource Shortage",
+                        type: "Operational",
+                        likelihood: 3,
+                        impact: 4,
+                        minCost: 7000,
+                        costPercentage: 5,
+                        response: "Establish resource management plan",
+                        id: Date.now() + 5
+                    },
+                    {
+                        name: "Payment Module Bug",
+                        type: "Technical",
+                        likelihood: 3,
+                        impact: 4,
+                        minCost: 12000,
+                        costPercentage: 7,
+                        response: "Implement comprehensive testing and QA process",
+                        id: Date.now() + 6
+                    },
+                    {
+                        name: "Feature Overload",
+                        type: "Scope",
+                        likelihood: 4,
+                        impact: 4,
+                        minCost: 9000,
+                        costPercentage: 6,
+                        response: "Implement feature prioritization and backlog management",
+                        id: Date.now() + 7
+                    },
+                    {
+                        name: "Delayed Design Approval",
+                        type: "Management",
+                        likelihood: 3,
+                        impact: 3,
+                        minCost: 6000,
+                        costPercentage: 4,
+                        response: "Establish clear design review process and timelines",
+                        id: Date.now() + 8
+                    },
+                    {
+                        name: "Server Downtime",
+                        type: "Operational",
+                        likelihood: 2,
+                        impact: 5,
+                        minCost: 15000,
+                        costPercentage: 9,
+                        response: "Implement robust monitoring and backup systems",
+                        id: Date.now() + 9
+                    }
+                ];
+
+                // Add predefined risks directly to game state
+                window.gameState.risks = predefinedRisks;
+            }
+
+            // Hide setup and show risk sections
+            document.getElementById('setup').classList.add('hidden');
+            document.getElementById('riskInput').classList.remove('hidden');
+            document.getElementById('riskRegister').classList.remove('hidden');
+
+            // Update UI
+            updateRiskRegister();
+            updateRiskCounter();
+            updateBudgetDisplay();
+        };
+
+        // Add these helper functions in the same script tag
+        function getRiskLevel(score) {
+            if (score <= 6) return 'Low';
+            if (score <= 12) return 'Medium';
+            if (score <= 20) return 'High';
+            return 'Critical';
+        }
+
+        window.addRisk = function() {
+            const riskName = document.getElementById('riskName').value;
+            const riskType = document.getElementById('riskType').value;
+            const likelihood = document.getElementById('likelihood').value;
+            const impact = document.getElementById('impact').value;
+            const minCost = document.getElementById('minCost').value;
+            const costPercentage = document.getElementById('costPercentage').value;
+            
+            // Get response based on selected type
+            const responseType = document.getElementById('riskResponseType').value;
+            let riskResponse;
+            if (responseType === 'custom') {
+                riskResponse = document.getElementById('customResponse').value.trim();
+                if (!riskResponse) {
+                    alert('Please enter a custom response strategy');
+                    return;
+                }
+            } else {
+                riskResponse = document.getElementById('riskResponse').value;
+            }
+
+            // Validate risk form
+            if (!riskName || !riskType || !likelihood || !impact || !minCost || !costPercentage || !riskResponse) {
+                alert('Please fill in all risk details before adding.');
+                return;
+            }
+
+            const risk = {
+                id: Date.now(),
+                name: riskName,
+                type: riskType,
+                likelihood: parseInt(likelihood),
+                impact: parseInt(impact),
+                minCost: parseFloat(minCost),
+                costPercentage: parseFloat(costPercentage),
+                response: riskResponse
+            };
+
+            // Add the risk to the game state
+            if (!window.gameState.risks) {
+                window.gameState.risks = [];
+            }
+            window.gameState.risks.push(risk);
+
+            // Update the UI
+            updateRiskRegister();
+            updateRiskCounter();
+
+            // Clear form
+            document.getElementById('riskName').value = '';
+            document.getElementById('riskType').value = 'Technical';
+            document.getElementById('likelihood').value = '3';
+            document.getElementById('impact').value = '3';
+            document.getElementById('minCost').value = '5000';
+            document.getElementById('costPercentage').value = '5';
+            document.getElementById('riskResponseType').value = 'predefined';
+            document.getElementById('riskResponse').value = 'Hire additional technical experts';
+            document.getElementById('customResponse').value = '';
+            toggleCustomResponse(); // Reset the response input display
+        };
+
+        function updateRiskRegister() {
+            const riskTableBody = document.getElementById('riskTableBody');
+            riskTableBody.innerHTML = '';
+            
+            window.gameState.risks.forEach(risk => {
+                const riskScore = risk.likelihood * risk.impact;
+                const riskLevel = getRiskLevel(riskScore);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${risk.name}</td>
+                    <td>${risk.type}</td>
+                    <td>${risk.likelihood}</td>
+                    <td>${risk.impact}</td>
+                    <td>${riskScore}</td>
+                    <td><span class="risk-level ${riskLevel.toLowerCase()}">${riskLevel}</span></td>
+                    <td>€${risk.minCost.toLocaleString()}</td>
+                    <td>${risk.costPercentage}%</td>
+                    <td>${risk.response}</td>
+                    <td><button onclick="deleteRisk(${risk.id})" class="delete-btn">Delete</button></td>
+                `;
+                riskTableBody.appendChild(row);
+            });
+        }
+
+        function updateRiskCounter() {
+            const count = window.gameState.risks.length;
+            const riskCounter = document.getElementById('riskCounter');
+            const errorMessage = document.getElementById('riskError');
+            
+            riskCounter.textContent = count;
+            
+            // Add warning class if count is less than 5
+            if (count < 5) {
+                riskCounter.classList.add('warning');
+                errorMessage.style.display = 'flex';
+                // Trigger shake animation
+                errorMessage.style.animation = 'none';
+                errorMessage.offsetHeight; // Trigger reflow
+                errorMessage.style.animation = 'warningShake 0.5s ease-in-out, warningPulse 2s infinite';
+            } else {
+                riskCounter.classList.remove('warning');
+                errorMessage.style.display = 'none';
+            }
+            
+            // Update start simulation button state
+            const startSimBtn = document.querySelector('button[onclick="startSimulation()"]');
+            if (startSimBtn) {
+                startSimBtn.disabled = count < 5;
+                startSimBtn.style.opacity = count < 5 ? '0.5' : '1';
+                startSimBtn.title = count < 5 ? 'Add at least 5 risks to start' : 'Start Simulation';
+            }
+        }
+
+        function updateBudgetDisplay() {
+            const state = window.gameState;
+            const budget = state.project.budget;
+            const remaining = state.project.remainingBudget / 1000; // Convert to k
+            const contingency = state.project.riskContingency;
+            const used = budget - remaining;
+
+            // Update budget cards if they exist
+            if (document.getElementById('initialBudget')) {
+                document.getElementById('initialBudget').textContent = `€${budget.toLocaleString()}k`;
+                document.getElementById('remainingBudget').textContent = `€${remaining.toLocaleString()}k`;
+                document.getElementById('riskContingency').textContent = `€${contingency.toLocaleString()}k`;
+                document.getElementById('usedBudget').textContent = `€${used.toLocaleString()}k`;
+            }
+
+            // Update budget bars if they exist
+            const remainingPercent = (remaining / budget) * 100;
+            const contingencyPercent = (contingency / budget) * 100;
+            const usedPercent = (used / budget) * 100;
+
+            if (document.getElementById('remainingBudgetBar')) {
+            document.getElementById('remainingBudgetBar').style.width = `${remainingPercent}%`;
+            document.getElementById('contingencyBar').style.width = `${contingencyPercent}%`;
+            document.getElementById('usedBudgetBar').style.width = `${usedPercent}%`;
+            }
+        }
+
+        window.deleteRisk = function(riskId) {
+            if (confirm('Are you sure you want to delete this risk?')) {
+                window.gameState.risks = window.gameState.risks.filter(risk => risk.id !== riskId);
+                updateRiskRegister();
+                updateRiskCounter();
+            }
+        };
+
+        window.goBack = function() {
+            document.getElementById('setup').classList.remove('hidden');
+            document.getElementById('riskInput').classList.add('hidden');
+            document.getElementById('riskRegister').classList.add('hidden');
+        };
+
+        // Add this function to your existing script
+        window.startSimulation = function() {
+            // Check if we have enough risks
+            if (window.gameState.risks.length < 5) {
+                const errorMessage = document.getElementById('riskError');
+                errorMessage.style.display = 'flex';
+                errorMessage.style.animation = 'none';
+                errorMessage.offsetHeight; // Trigger reflow
+                errorMessage.style.animation = 'warningShake 0.5s ease-in-out, warningPulse 2s infinite';
+                return;
+            }
+
+            // Hide risk input and register sections
+            document.getElementById('riskInput').classList.add('hidden');
+            document.getElementById('riskRegister').classList.add('hidden');
+
+            // Show simulation section
+            document.getElementById('simulation').classList.remove('hidden');
+
+            // Initialize simulation state
+            window.gameState.project.currentTurn = 0;
+            window.gameState.project.quality = 100;
+            window.gameState.project.remainingBudget = window.gameState.project.budget * 1000;
+            window.gameState.occurredRisks = [];
+            window.gameState.remainingRisks = [...window.gameState.risks];
+
+            // Create and show project overview
+            const riskEvents = document.getElementById('riskEvents');
+            const projectOverview = `
+                <div class="project-overview">
+                    <h2>Project Overview</h2>
+                    <div class="overview-grid">
+                        <div class="overview-item">
+                            <h3>Project Details</h3>
+                            <p><strong>Project Name:</strong> ${window.gameState.project.name}</p>
+                            <p><strong>Project Manager:</strong> ${window.gameState.userName}</p>
+                            <p><strong>Duration:</strong> ${window.gameState.project.duration} months</p>
+                        </div>
+                        <div class="overview-item">
+                            <h3>Financial Overview</h3>
+                            <p><strong>Total Budget:</strong> €${(window.gameState.project.budget).toLocaleString()}k</p>
+                            <p><strong>Risk Contingency:</strong> €${(window.gameState.project.riskContingency).toLocaleString()}k</p>
+                            <p><strong>Available Budget:</strong> €${(window.gameState.project.budget).toLocaleString()}k</p>
+                        </div>
+                        <div class="overview-item">
+                            <h3>Current Status</h3>
+                            <p><strong>Turn:</strong> ${window.gameState.project.currentTurn + 1} of ${window.gameState.project.duration}</p>
+                            <p><strong>Project Quality:</strong> ${window.gameState.project.quality}%</p>
+                            <p><strong>Identified Risks:</strong> ${window.gameState.risks.length}</p>
+                        </div>
+                    </div>
+                    <div class="progress-overview">
+                        <div class="progress-container">
+                            <div class="progress-label">
+                                <span>Budget Progress</span>
+                                <span id="budgetLabel">100%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div id="budgetProgress" class="progress" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-label">
+                                <span>Quality Progress</span>
+                                <span id="qualityLabel">100%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div id="qualityProgress" class="progress" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="startTurns()" class="start-simulation-btn">Start Simulation</button>
+                </div>
+            `;
+
+            riskEvents.innerHTML = projectOverview;
+
+            // Update progress bars
+            updateProgressBars();
+            updateBudgetDisplay();
+        };
+
+        // Add new function to start the actual turns
+        window.startTurns = function() {
+            const riskEvents = document.getElementById('riskEvents');
+            riskEvents.innerHTML = ''; // Clear the overview
+            nextTurn(); // Start the first turn
+        };
+
+        function addUpdate(update) {
+            const state = window.gameState;
+            if (!state.updates) {
+                state.updates = [];
+            }
+            state.updates.push(update);
+            updateTurnLog();
+        }
+
+        function updateTurnLog() {
+            const state = window.gameState;
+            const updateLog = document.querySelector('.update-log');
+            if (!updateLog) return;
+
+            let html = '';
+            state.updates.slice().reverse().forEach(update => {
+                const entryClass = update.type === 'positive' ? 'positive' : 
+                                 update.type === 'negative' ? 'negative' : '';
+                html += `
+                    <div class="update-entry ${entryClass}">
+                        <div class="update-turn">Turn ${update.turn + 1}</div>
+                        <div>${update.message}</div>
+                        ${update.impact ? `<div class="update-impact">${update.impact}</div>` : ''}
+                        ${update.response ? `<div class="update-response">${update.response}</div>` : ''}
+                        <div class="update-impact">Budget: €${update.budget.toLocaleString()} | Quality: ${update.quality}%</div>
+                    </div>
+                `;
+            });
+            updateLog.innerHTML = html;
+        }
+
+        window.nextTurn = function() {
+            const state = window.gameState;
+            
+            // Check if simulation is complete
+            if (state.project.currentTurn >= state.project.duration) {
+                endSimulation();
+                return;
+            }
+
+            const riskEvents = document.getElementById('riskEvents');
+            
+            // Calculate current progress percentages
+            const budgetPercentage = (state.project.remainingBudget / (state.project.budget * 1000)) * 100;
+            const qualityPercentage = state.project.quality;
+            
+            // Update turn stats first
+            const turnStats = `
+                <div class="turn-stats">
+                    <div class="stat-box">
+                        <div class="stat-label">Turn</div>
+                        <div class="stat-value">${state.project.currentTurn + 1} of ${state.project.duration}</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Budget Remaining</div>
+                        <div class="stat-value ${state.project.remainingBudget < 0 ? 'negative' : 'budget'}">
+                            €${(Math.round(state.project.remainingBudget / 1000)).toLocaleString()}k
+                        </div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Project Quality</div>
+                        <div class="stat-value quality">${Math.round(state.project.quality)}%</div>
+                    </div>
+                </div>
+            `;
+
+            let turnEvents = `
+                ${turnStats}
+                <h4>Turn ${state.project.currentTurn + 1} of ${state.project.duration}:</h4>
+            `;
+
+            let hasEvents = false;
+
+            // Initialize arrays if they don't exist
+            if (!state.occurredRisks) {
+                state.occurredRisks = [];
+            }
+            if (!state.remainingRisks) {
+                state.remainingRisks = [...state.risks];
+            }
+
+            // Select a random risk from remaining risks
+            if (state.remainingRisks.length > 0) {
+                    hasEvents = true;
+                const randomIndex = Math.floor(Math.random() * state.remainingRisks.length);
+                const risk = state.remainingRisks[randomIndex];
+                
+                // Remove the selected risk from remaining risks
+                state.remainingRisks.splice(randomIndex, 1);
+                
+                    const impact = calculateRiskImpact(risk);
+                    
+                    // Create a unique ID for this risk event
+                    const eventId = `risk-event-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+                    
+                    // Store the risk occurrence with pending status
+                    const riskOccurrence = {
+                        id: eventId,
+                        risk: risk,
+                        turn: state.project.currentTurn + 1,
+                        impact: impact,
+                        status: 'pending',
+                        response: null
+                    };
+                    
+                    state.occurredRisks.push(riskOccurrence);
+                    
+                    // Create the risk event HTML with response options
+                    turnEvents += `
+                        <div class="risk-event" id="${eventId}" data-risk-id="${risk.id}">
+                            <h4>${risk.name}</h4>
+                        <p>Type: ${risk.type}</p>
+                        <p>Cost Impact: €${(impact.cost / 1000).toLocaleString()}k</p>
+                            <p>Quality Impact: -${impact.qualityImpact}%</p>
+                            
+                            <div class="response-options">
+                                <h4>Choose Your Response:</h4>
+                                <div class="response-selection">
+                                    <select class="response-select" id="select-${eventId}" onchange="handleResponseTypeChange('${eventId}')">
+                                        <option value="">--Select an Action--</option>
+                                        <option value="Mitigate">Mitigate</option>
+                                        <option value="Avoid">Avoid</option>
+                                        <option value="Transfer">Transfer</option>
+                                        <option value="Accept">Accept</option>
+                                        <option value="custom">Custom Response...</option>
+                                    </select>
+                                    <input type="text" id="custom-${eventId}" class="custom-response hidden" placeholder="Enter your custom response strategy...">
+                                </div>
+                                <button class="respond-btn" onclick="respondToRisk('${eventId}')">Respond</button>
+                                <div class="response-result" id="result-${eventId}"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+            if (hasEvents) {
+                // If there is a risk event, add it to the display and require response
+                riskEvents.innerHTML = turnEvents;
+            } else {
+                // If no events, display a message and move to next turn
+                riskEvents.innerHTML = turnEvents + `
+                    <div class="risk-event responded">
+                        <h4>Turn ${state.project.currentTurn + 1}</h4>
+                        <p>No more risks remaining.</p>
+                    </div>
+                `;
+                
+                // Even with no risks, we should still update progress
+                state.project.currentTurn++;
+                
+                // Small random fluctuation in quality for no-risk turns
+                const qualityChange = Math.random() * 2 - 1; // Random value between -1 and 1
+                state.project.quality = Math.max(0, Math.min(100, state.project.quality + qualityChange));
+                
+                // Small budget cost for project maintenance
+                const maintenanceCost = (state.project.budget * 1000) * 0.01; // 1% of initial budget
+                state.project.remainingBudget -= maintenanceCost;
+                
+                // Update progress immediately for no-risk turns
+                updateProgressBars();
+                updateBudgetDisplay();
+            }
+        };
+
+        function calculateRiskImpact(risk) {
+            const baseCost = risk.minCost;
+            const budgetImpact = (window.gameState.project.budget * risk.costPercentage) / 100;
+            const finalCost = Math.max(baseCost, budgetImpact);
+            const qualityImpact = risk.impact * 2; // Each impact point reduces quality by 2%
+
+            return {
+                cost: finalCost,
+                qualityImpact: qualityImpact
+            };
+        }
+
+        function applyRiskImpact(risk, impact) {
+            const state = window.gameState;
+            
+            // Apply cost impact
+            state.project.remainingBudget -= impact.cost;
+            
+            // Apply quality impact
+            state.project.quality = Math.max(0, state.project.quality - impact.qualityImpact);
+        }
+
+        function endSimulation() {
+            const state = window.gameState;
+            
+            // Calculate final scores
+            const initialBudget = state.project.budget * 1000;
+            const budgetScore = (state.project.remainingBudget / initialBudget) * 50;
+            const qualityScore = (state.project.quality / 100) * 50;
+            const finalScore = Math.round(budgetScore + qualityScore);
+
+            // Save game result before showing the results screen
+            const gameResult = {
+                score: finalScore,
+                playerName: state.userName,
+                projectName: state.project.name,
+                budget: state.project.remainingBudget,
+                quality: state.project.quality,
+                risksHandled: state.occurredRisks.length,
+                duration: state.project.duration
+            };
+            saveGameResult(gameResult);
+
+            // Calculate percentages for display
+            const budgetPercentage = Math.round((state.project.remainingBudget / initialBudget) * 100);
+            const qualityPercentage = Math.round(state.project.quality);
+            const risksHandled = state.occurredRisks.length;
+            const totalRisks = state.risks.length;
+            const riskPercentage = Math.round((risksHandled / totalRisks) * 100);
+
+            // Get grade and message
+            const grading = gradeResult(finalScore);
+
+            // Show results section
+            document.getElementById('simulation').classList.add('hidden');
+            document.getElementById('results').classList.remove('hidden');
+
+            // Create confetti effect for good scores
+            if (finalScore >= 70) {
+                createConfetti();
+            }
+
+            // Create detailed results HTML with enhanced visuals
+            const resultsHtml = `
+                <div class="results-container">
+                    <div class="results-header ${finalScore >= 70 ? 'success' : 'failure'}">
+                        <div class="grade-display animate-pop">
+                            <div class="grade-badge grade-${grading.grade} animate-bounce">${grading.grade}</div>
+                            <div class="final-score animate-count">${finalScore}%</div>
+                        </div>
+                        <p class="grade-message animate-fade-in">${grading.message}</p>
+                    </div>
+
+                    <div class="performance-summary animate-slide-in">
+                        <h3>Performance Summary</h3>
+                        <div class="metric-cards">
+                            <div class="metric-card">
+                                <div class="metric-icon">💰</div>
+                                <div class="metric-title">Budget Management</div>
+                                <div class="metric-value ${budgetPercentage >= 60 ? 'positive' : 'negative'}">
+                                    ${budgetPercentage}%
+                                </div>
+                                <div class="metric-label">Remaining Budget</div>
+                                <div class="metric-detail">€${(state.project.remainingBudget / 1000).toLocaleString()}k / €${state.project.budget}k</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-icon">⭐</div>
+                                <div class="metric-title">Project Quality</div>
+                                <div class="metric-value ${qualityPercentage >= 60 ? 'positive' : 'negative'}">
+                                    ${qualityPercentage}%
+                                </div>
+                                <div class="metric-label">Final Quality Score</div>
+                                <div class="metric-detail">Target: 100%</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-icon">🎯</div>
+                                <div class="metric-title">Risk Management</div>
+                                <div class="metric-value ${(risksHandled/totalRisks) >= 0.8 ? 'positive' : 'negative'}">
+                                    ${risksHandled}/${totalRisks}
+                                </div>
+                                <div class="metric-label">Risks Handled</div>
+                                <div class="metric-detail">${Math.round(risksHandled/totalRisks * 100)}% Completion</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detailed-analysis animate-slide-in">
+                        <h3>Project Analysis</h3>
+                        <div class="analysis-grid">
+                            <div class="analysis-item ${budgetPercentage >= 60 ? 'success' : 'warning'}">
+                                <h4>Budget Analysis</h4>
+                                <div class="progress-circle" data-progress="${budgetPercentage}">
+                                    <div class="progress-circle-bar">
+                                        <div class="progress-circle-value">${budgetPercentage}%</div>
+                                    </div>
+                                </div>
+                                <p>${getBudgetAnalysis(budgetPercentage)}</p>
+                            </div>
+                            <div class="analysis-item ${qualityPercentage >= 60 ? 'success' : 'warning'}">
+                                <h4>Quality Analysis</h4>
+                                <div class="progress-circle" data-progress="${qualityPercentage}">
+                                    <div class="progress-circle-bar">
+                                        <div class="progress-circle-value">${qualityPercentage}%</div>
+                                    </div>
+                                </div>
+                                <p>${getQualityAnalysis(qualityPercentage)}</p>
+                            </div>
+                            <div class="analysis-item ${(risksHandled/totalRisks) >= 0.8 ? 'success' : 'warning'}">
+                                <h4>Risk Analysis</h4>
+                                <div class="progress-circle" data-progress="${Math.round(risksHandled/totalRisks * 100)}">
+                                    <div class="progress-circle-bar">
+                                        <div class="progress-circle-value">${Math.round(risksHandled/totalRisks * 100)}%</div>
+                                    </div>
+                                </div>
+                                <p>${getRiskAnalysis(risksHandled, totalRisks)}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="recommendations-section animate-slide-in">
+                        <h3>Recommendations for Improvement</h3>
+                        <div class="recommendations-grid">
+                            ${generateRecommendations(budgetPercentage, qualityPercentage, risksHandled/totalRisks)}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Update the results section
+            document.getElementById('results').innerHTML = `
+                <h2 class="animate-slide-in">Game Results</h2>
+                ${resultsHtml}
+                <div class="button-group animate-slide-in">
+                    <button onclick="resetGame()" class="reset-btn">Play Again</button>
+                    <button onclick="printResults()" class="print-btn">Print Results</button>
+                    <button onclick="showGameLog()" class="view-leaderboard-btn">View Leaderboard</button>
+                </div>
+            `;
+
+            // Initialize circular progress bars
+            initializeCircularProgress();
+
+            // Add the enhanced styles
+            if (!document.querySelector('style').textContent.includes('.results-container')) {
+                const styleSheet = document.createElement('style');
+                styleSheet.textContent = `
+                    .results-container {
+                        background-color: white;
+                        padding: 30px;
+                        border-radius: 12px;
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                        margin: 20px 0;
+                    }
+
+                    .animate-pop {
+                        animation: pop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                    }
+
+                    .animate-bounce {
+                        animation: bounce 1s ease infinite;
+                    }
+
+                    .animate-count {
+                        animation: countUp 2s ease-out;
+                    }
+
+                    .animate-fade-in {
+                        animation: fadeIn 1s ease-in;
+                    }
+
+                    .animate-slide-in {
+                        animation: slideIn 0.5s ease-out;
+                    }
+
+                    @keyframes pop {
+                        0% { transform: scale(0); }
+                        100% { transform: scale(1); }
+                    }
+
+                    @keyframes bounce {
+                        0%, 100% { transform: translateY(0); }
+                        50% { transform: translateY(-10px); }
+                    }
+
+                    @keyframes countUp {
+                        0% { opacity: 0; transform: translateY(20px); }
+                        100% { opacity: 1; transform: translateY(0); }
+                    }
+
+                    @keyframes fadeIn {
+                        0% { opacity: 0; }
+                        100% { opacity: 1; }
+                    }
+
+                    @keyframes slideIn {
+                        0% { opacity: 0; transform: translateX(-20px); }
+                        100% { opacity: 1; transform: translateX(0); }
+                    }
+
+                    .metric-cards {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                        gap: 20px;
+                        margin: 20px 0;
+                    }
+
+                    .metric-card {
+                        background: linear-gradient(145deg, #ffffff, #f5f5f5);
+                        padding: 20px;
+                        border-radius: 12px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                        text-align: center;
+                        transition: transform 0.3s ease;
+                    }
+
+                    .metric-card:hover {
+                        transform: translateY(-5px);
+                    }
+
+                    .metric-icon {
+                        font-size: 2.5em;
+                        margin-bottom: 10px;
+                    }
+
+                    .metric-title {
+                        font-weight: bold;
+                        color: #333;
+                        margin-bottom: 10px;
+                    }
+
+                    .metric-value {
+                        font-size: 2em;
+                        font-weight: bold;
+                        margin: 10px 0;
+                    }
+
+                    .metric-value.positive {
+                        color: #4CAF50;
+                    }
+
+                    .metric-value.negative {
+                        color: #f44336;
+                    }
+
+                    .metric-label {
+                        color: #666;
+                        font-size: 0.9em;
+                    }
+
+                    .metric-detail {
+                        font-size: 0.8em;
+                        color: #888;
+                        margin-top: 5px;
+                    }
+
+                    .analysis-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                        gap: 20px;
+                        margin: 20px 0;
+                    }
+
+                    .analysis-item {
+                        background-color: #f8f9fa;
+                        padding: 20px;
+                        border-radius: 12px;
+                        text-align: center;
+                    }
+
+                    .analysis-item.success {
+                        border-left: 4px solid #4CAF50;
+                    }
+
+                    .analysis-item.warning {
+                        border-left: 4px solid #ff9800;
+                    }
+
+                    .progress-circle {
+                        width: 120px;
+                        height: 120px;
+                        border-radius: 50%;
+                        background: #f0f0f0;
+                        margin: 20px auto;
+                        position: relative;
+                        overflow: hidden;
+                    }
+
+                    .progress-circle-bar {
+                        width: 100%;
+                        height: 100%;
+                        transform: rotate(0deg);
+                        transition: transform 1s ease;
+                    }
+
+                    .progress-circle-value {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        font-size: 1.5em;
+                        font-weight: bold;
+                        color: #333;
+                    }
+
+                    .recommendations-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                        gap: 15px;
+                        margin: 15px 0;
+                    }
+
+                    .recommendation-card {
+                        background-color: #f8f9fa;
+                        padding: 15px;
+                        border-radius: 8px;
+                        border-left: 4px solid #2196F3;
+                    }
+
+                    .recommendation-card h4 {
+                        color: #2196F3;
+                        margin-top: 0;
+                    }
+
+                    .recommendation-card p {
+                        color: #666;
+                        margin: 10px 0 0 0;
+                    }
+
+                    @media print {
+                        .button-group {
+                            display: none !important;
+                        }
+                        .animate-pop, .animate-bounce, .animate-count, 
+                        .animate-fade-in, .animate-slide-in {
+                            animation: none !important;
+                        }
+                    }
+                `;
+                document.head.appendChild(styleSheet);
+            }
+
+            // Initialize animations and effects
+            animateResults();
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.animationDelay = Math.random() * 3 + 's';
+                confetti.style.backgroundColor = ['#f44336', '#2196F3', '#4CAF50', '#FFC107'][Math.floor(Math.random() * 4)];
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 3000);
+            }
+        }
+
+        function initializeCircularProgress() {
+            document.querySelectorAll('.progress-circle').forEach(circle => {
+                const progress = circle.getAttribute('data-progress');
+                const bar = circle.querySelector('.progress-circle-bar');
+                bar.style.transform = `rotate(${progress * 3.6}deg)`;
+            });
+        }
+
+        function animateResults() {
+            const elements = document.querySelectorAll('.animate-pop, .animate-bounce, .animate-count, .animate-fade-in, .animate-slide-in');
+            elements.forEach((element, index) => {
+                element.style.animationDelay = (index * 0.2) + 's';
+            });
+        }
+
+        function getBudgetAnalysis(percentage) {
+            if (percentage >= 80) return "Excellent budget management! You've maintained a strong financial position.";
+            if (percentage >= 60) return "Good budget control. Some room for optimization in future projects.";
+            if (percentage >= 40) return "Budget management needs attention. Consider more cost-effective strategies.";
+            return "Significant budget overruns. Review cost control measures for future projects.";
+        }
+
+        function getQualityAnalysis(percentage) {
+            if (percentage >= 80) return "Outstanding quality maintenance! Project meets high standards.";
+            if (percentage >= 60) return "Good quality management. Minor improvements possible.";
+            if (percentage >= 40) return "Quality standards need attention. Consider process improvements.";
+            return "Quality issues require immediate attention. Review quality control processes.";
+        }
+
+        function getRiskAnalysis(handled, total) {
+            const percentage = handled/total;
+            if (percentage >= 0.8) return "Excellent risk management! Most risks were effectively handled.";
+            if (percentage >= 0.6) return "Good risk handling. Some risks could have been better managed.";
+            if (percentage >= 0.4) return "Risk management needs improvement. Consider more proactive strategies.";
+            return "Risk management requires significant attention. Review risk assessment procedures.";
+        }
+
+        function generateRecommendations(budget, quality, riskRatio) {
+            let recommendations = '';
+            if (budget < 60) {
+                recommendations += `
+                    <div class="recommendation-card">
+                        <h4>Budget Management</h4>
+                        <p>Focus on cost-effective risk responses and better budget allocation.</p>
+                    </div>
+                `;
+            }
+            if (quality < 60) {
+                recommendations += `
+                    <div class="recommendation-card">
+                        <h4>Quality Control</h4>
+                        <p>Implement stronger quality assurance measures and regular quality checks.</p>
+                    </div>
+                `;
+            }
+            if (riskRatio < 0.8) {
+                recommendations += `
+                    <div class="recommendation-card">
+                        <h4>Risk Management</h4>
+                        <p>Develop more comprehensive risk identification and response strategies.</p>
+                    </div>
+                `;
+            }
+            return recommendations || `
+                <div class="recommendation-card">
+                    <h4>Maintain Excellence</h4>
+                    <p>Continue your excellent project management practices!</p>
+                </div>
+            `;
+        }
+
+        function saveGameResult(result) {
+            const playerHistory = JSON.parse(localStorage.getItem('riskGameHistory') || '{}');
+            const playerName = result.playerName;
+
+            // Ensure we have an array for this player
+            if (!playerHistory[playerName]) {
+                playerHistory[playerName] = [];
+            }
+
+            // Add timestamp and ensure all required fields are present
+            const completeResult = {
+                ...result,
+                timestamp: new Date().toISOString(),
+                score: result.score,
+                playerName: playerName,
+                projectName: result.projectName || 'Unnamed Project',
+                budget: result.budget,
+                quality: result.quality,
+                risksHandled: result.risksHandled,
+                duration: result.duration
+            };
+
+            // Add the result to the player's history
+            playerHistory[playerName].push(completeResult);
+
+            // Save to localStorage
+            localStorage.setItem('riskGameHistory', JSON.stringify(playerHistory));
+
+            // Update the leaderboard if it's visible
+            if (document.getElementById('gameLogModal').style.display === 'block') {
+                updateLeaderboard();
+            }
+        }
+
+        function gradeResult(score) {
+            if (score >= 90) return { 
+                grade: 'A', 
+                message: 'Outstanding! You demonstrated excellent project and risk management skills.'
+            };
+            if (score >= 80) return { 
+                grade: 'B', 
+                message: 'Very good! Your project management showed strong risk handling capabilities.'
+            };
+            if (score >= 70) return { 
+                grade: 'C', 
+                message: 'Good job! You maintained satisfactory control over project risks.'
+            };
+            if (score >= 60) return { 
+                grade: 'D', 
+                message: 'Passed, but there\'s room for improvement in risk management.'
+            };
+            return { 
+                grade: 'F', 
+                message: 'Project management needs significant improvement. Try focusing on better risk responses.'
+            };
+        }
+
+        window.resetGame = function() {
+            // Reset all sections
+            document.getElementById('results').classList.add('hidden');
+            document.getElementById('setup').classList.remove('hidden');
+            
+            // Clear all forms
+            document.getElementById('userName').value = '';
+            document.getElementById('projectName').value = '';
+            document.getElementById('projectBudget').value = '100';
+            document.getElementById('projectDuration').value = '24';
+            document.getElementById('riskContingency').value = '10';
+            
+            // Clear game state
+            window.gameState = null;
+            
+            // Clear risk events
+            document.getElementById('riskEvents').innerHTML = '';
+        };
+
+        window.exportToExcel = function() {
+            // Get the game state
+            const state = window.gameState;
+            
+            // Create data array for Excel
+            const data = [
+                // Headers
+                [
+                    'Risk Name',
+                    'Risk Type',
+                    'Likelihood (1-5)',
+                    'Impact (1-5)',
+                    'Risk Score',
+                    'Risk Level',
+                    'Minimum Cost (€)',
+                    'Cost % of Budget',
+                    'Response Strategy',
+                    'Project Name',
+                    'Project Budget',
+                    'Project Duration',
+                    'Risk Contingency'
+                ]
+            ];
+
+            // Add each risk as a row
+            state.risks.forEach(risk => {
+                const riskScore = risk.likelihood * risk.impact;
+                const riskLevel = getRiskLevel(riskScore);
+                
+                data.push([
+                    risk.name,
+                    risk.type,
+                    risk.likelihood,
+                    risk.impact,
+                    riskScore,
+                    riskLevel,
+                    risk.minCost,
+                    risk.costPercentage + '%',
+                    risk.response,
+                    state.project.name,
+                    '€' + state.project.budget.toLocaleString(),
+                    state.project.duration + ' months',
+                    state.project.riskContingency + '%'
+                ]);
+            });
+
+            // Create worksheet
+            const ws = XLSX.utils.aoa_to_sheet(data);
+
+            // Set column widths
+            const colWidths = [
+                { wch: 30 }, // Risk Name
+                { wch: 15 }, // Risk Type
+                { wch: 15 }, // Likelihood
+                { wch: 15 }, // Impact
+                { wch: 12 }, // Risk Score
+                { wch: 12 }, // Risk Level
+                { wch: 15 }, // Min Cost
+                { wch: 15 }, // Cost %
+                { wch: 40 }, // Response
+                { wch: 20 }, // Project Name
+                { wch: 15 }, // Budget
+                { wch: 15 }, // Duration
+                { wch: 15 }  // Contingency
+            ];
+            ws['!cols'] = colWidths;
+
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Risk Register');
+
+            // Generate filename with project name and date
+            const date = new Date().toISOString().split('T')[0];
+            const fileName = `${state.project.name}_Risk_Register_${date}.xlsx`;
+
+            // Save file
+            XLSX.writeFile(wb, fileName);
+        };
+
+        window.printResults = function() {
+            const state = window.gameState;
+            if (!state) {
+                console.error('Game state not found');
+                return;
+            }
+
+            // Get the results container
+            const resultsContainer = document.getElementById('results');
+            if (!resultsContainer) {
+                console.error('Results container not found');
+                return;
+            }
+
+            // Create a print-specific header
+            const printHeader = document.createElement('div');
+            printHeader.id = 'print-header';
+            printHeader.style.marginBottom = '30px';
+            printHeader.innerHTML = `
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="color: #333; margin-bottom: 10px;">Risk Management Simulation Results</h1>
+                    <p style="color: #666;"><strong>Report Generated:</strong> ${new Date().toLocaleString()}</p>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <h2 style="color: #333; font-size: 1.5em;">Project Information</h2>
+                    <p><strong>Project Manager:</strong> ${state.userName}</p>
+                    <p><strong>Project Name:</strong> ${state.project.name}</p>
+                    <p><strong>Duration:</strong> ${state.project.duration} months</p>
+                </div>
+            `;
+
+            // Create a project summary
+            const printSummary = document.createElement('div');
+            printSummary.id = 'print-summary';
+            printSummary.style.marginBottom = '30px';
+            printSummary.innerHTML = `
+                <div style="margin-bottom: 30px;">
+                    <h2 style="color: #333; font-size: 1.5em;">Project Summary</h2>
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Initial Budget:</strong></td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">€${state.project.budget.toLocaleString()}k</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Final Budget:</strong></td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">€${(state.project.remainingBudget/1000).toLocaleString()}k</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Initial Quality:</strong></td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">100%</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Final Quality:</strong></td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${Math.round(state.project.quality)}%</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Risks Identified:</strong></td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${state.risks.length}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Risks Occurred:</strong></td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${state.occurredRisks.length}</td>
+                        </tr>
+                    </table>
+                </div>
+            `;
+
+            // Insert the print-specific elements
+            resultsContainer.insertBefore(printHeader, resultsContainer.firstChild);
+            resultsContainer.insertBefore(printSummary, document.querySelector('.results-container'));
+
+            // Print the page
+            setTimeout(() => {
+                window.print();
+                
+                // Clean up after printing
+                setTimeout(() => {
+                    printHeader.remove();
+                    printSummary.remove();
+                }, 1000);
+            }, 500);
+        };
+
+        // Add the respond to risk function
+        window.respondToRisk = function(eventId) {
+            const state = window.gameState;
+            const eventElement = document.getElementById(eventId);
+            const selectElement = document.getElementById(`select-${eventId}`);
+            const customInput = document.getElementById(`custom-${eventId}`);
+            const resultElement = document.getElementById(`result-${eventId}`);
+            
+            // Get the selected response
+            let selectedResponse = selectElement.value;
+            
+            // If custom response is selected, use the custom input value
+            if (selectedResponse === 'custom') {
+                selectedResponse = customInput.value.trim();
+                if (!selectedResponse) {
+                    alert('Please enter your custom response strategy');
+                    return;
+                }
+            } else if (!selectedResponse) {
+                alert('Please select a response strategy');
+                return;
+            }
+            
+            // Find the risk occurrence in the state
+            const riskOccurrence = state.occurredRisks.find(r => r.id === eventId);
+            
+            if (riskOccurrence) {
+                // Update the risk occurrence with the chosen response
+                riskOccurrence.status = 'responded';
+                riskOccurrence.response = selectedResponse;
+                
+                // Calculate the impact based on the response
+                let costReduction = 0;
+                let qualityImprovement = 0;
+                let resultMessage = '';
+                
+                switch (selectedResponse) {
+                    case 'Mitigate':
+                        costReduction = 0.3;
+                        qualityImprovement = 0.2;
+                        resultMessage = 'You took action to reduce the impact of this risk.';
+                        break;
+                    case 'Avoid':
+                        costReduction = 0.7;
+                        qualityImprovement = 0.6;
+                        resultMessage = 'You took significant measures to avoid this risk.';
+                        break;
+                    case 'Transfer':
+                        costReduction = 0.5;
+                        qualityImprovement = 0.1;
+                        resultMessage = 'You transferred some of the risk to a third party.';
+                        break;
+                    case 'Accept':
+                        costReduction = 0;
+                        qualityImprovement = 0;
+                        resultMessage = 'You accepted the full impact of this risk.';
+                        break;
+                    case 'custom':
+                        // Add any additional custom response handling logic you want to execute
+                        resultMessage = 'You provided a custom response strategy.';
+                        break;
+                }
+                
+                // Apply the adjusted impact
+                const adjustedCost = riskOccurrence.impact.cost * (1 - costReduction);
+                const adjustedQualityImpact = riskOccurrence.impact.qualityImpact * (1 - qualityImprovement);
+                
+                // Apply impact to project state
+                state.project.remainingBudget -= adjustedCost;
+                state.project.quality = Math.max(0, state.project.quality - adjustedQualityImpact);
+                
+                // Show the result
+                resultMessage += ` Adjusted impact: €${(Math.round(adjustedCost / 1000)).toLocaleString()}k and -${adjustedQualityImpact.toFixed(1)}% quality.`;
+                resultElement.textContent = resultMessage;
+                resultElement.style.display = 'block';
+                
+                // Disable the select and button
+                selectElement.disabled = true;
+                eventElement.querySelector('.respond-btn').disabled = true;
+                
+                // Mark the risk event as responded
+                eventElement.classList.add('responded');
+                
+                // Increment turn after responding to the risk
+                    state.project.currentTurn++;
+                    
+                // Calculate current progress percentages
+                const budgetPercentage = (state.project.remainingBudget / (state.project.budget * 1000)) * 100;
+                const qualityPercentage = state.project.quality;
+                
+                // Update the turn stats display
+                const turnStats = document.querySelector('.turn-stats');
+                if (turnStats) {
+                    turnStats.querySelector('.stat-value').textContent = `${state.project.currentTurn} of ${state.project.duration}`;
+                    turnStats.querySelector('.stat-value.budget').textContent = `€${(Math.round(state.project.remainingBudget / 1000)).toLocaleString()}k`;
+                    turnStats.querySelector('.stat-value.quality').textContent = `${Math.round(state.project.quality)}%`;
+                }
+
+                // Update progress bars
+                const budgetProgress = document.getElementById('budgetProgress');
+                const qualityProgress = document.getElementById('qualityProgress');
+                const budgetLabel = document.getElementById('budgetLabel');
+                const qualityLabel = document.getElementById('qualityLabel');
+
+                if (budgetProgress && qualityProgress) {
+                    budgetProgress.style.width = `${Math.max(0, Math.min(100, budgetPercentage))}%`;
+                    qualityProgress.style.width = `${qualityPercentage}%`;
+
+                    budgetLabel.textContent = `${Math.round(budgetPercentage)}%`;
+                    qualityLabel.textContent = `${Math.round(qualityPercentage)}%`;
+
+                    // Update colors based on status
+                    budgetProgress.style.backgroundColor = budgetPercentage < 0 ? '#f44336' : 
+                                                         budgetPercentage < 20 ? '#ff9800' : '#4CAF50';
+                    qualityProgress.style.backgroundColor = qualityPercentage < 50 ? '#f44336' : 
+                                                          qualityPercentage < 70 ? '#ff9800' : '#4CAF50';
+                }
+                    
+                    // Check if simulation should end
+                    if (state.project.currentTurn >= state.project.duration || 
+                        state.project.remainingBudget <= 0 || 
+                        state.project.quality <= 0) {
+                        endSimulation();
+                    }
+                }
+        };
+
+        // Replace game log functionality with leaderboard
+        function updateLeaderboard() {
+            const leaderboardContainer = document.getElementById('leaderboardEntries');
+            if (!leaderboardContainer) return;
+
+            // Get all game results
+            const playerHistory = JSON.parse(localStorage.getItem('riskGameHistory') || '{}');
+            let allGames = [];
+            
+            // Flatten and filter out any entries with undefined names
+            Object.entries(playerHistory).forEach(([playerName, games]) => {
+                const validGames = games.map(game => ({
+                    ...game,
+                    playerName: game.playerName || playerName // Use stored name or key as fallback
+                })).filter(game => game.playerName && game.playerName !== 'undefined');
+                allGames = allGames.concat(validGames);
+            });
+
+            // Sort by score (descending)
+            allGames.sort((a, b) => b.score - a.score);
+
+            // Calculate stats
+            const totalGames = allGames.length;
+            const avgScore = totalGames > 0 
+                ? Math.round(allGames.reduce((sum, game) => sum + game.score, 0) / totalGames) 
+                : 0;
+            const topScore = totalGames > 0 ? Math.round(allGames[0].score) : 0;
+
+            // Update stats display
+            document.getElementById('totalGames').textContent = totalGames;
+            document.getElementById('avgScore').textContent = avgScore + '%';
+            document.getElementById('topScore').textContent = topScore + '%';
+
+            // Generate leaderboard entries
+            leaderboardContainer.innerHTML = allGames.map(game => `
+                <tr>
+                    <td>${game.playerName}</td>
+                    <td>${game.projectName || 'Unnamed Project'}</td>
+                    <td><span class="grade-badge grade-${getGrade(game.score)}">${getGrade(game.score)}</span></td>
+                    <td class="score-cell">${Math.round(game.score)}%</td>
+                    <td class="date-cell">${new Date(game.timestamp).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        function getGrade(score) {
+            if (score >= 90) return 'A';
+            if (score >= 80) return 'B';
+            if (score >= 70) return 'C';
+            if (score >= 60) return 'D';
+            return 'F';
+        }
+
+        function showGameLog() {
+            document.getElementById('gameLogModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            updateLeaderboard();
+        }
+
+        function hideGameLog() {
+            document.getElementById('gameLogModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const helpModal = document.getElementById('helpModal');
+            const logModal = document.getElementById('gameLogModal');
+            const clearDialog = document.getElementById('clearConfirmDialog');
+            
+            if (event.target === helpModal) {
+                hideHelp();
+            } else if (event.target === logModal) {
+                hideGameLog();
+            } else if (event.target === clearDialog) {
+                hideClearConfirmation();
+            }
+        }
+
+        // Add these functions at the end of your existing script
+        function showHelp() {
+            document.getElementById('helpModal').style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Prevent scrolling of background
+        }
+
+        function hideHelp() {
+            document.getElementById('helpModal').style.display = 'none';
+            document.body.style.overflow = 'auto'; // Restore scrolling
+        }
+
+        // Modify existing functions to add log entries
+        const originalStartGame = window.startGame;
+        window.startGame = function() {
+            originalStartGame();
+            addLogEntry('game-event', 'Game Started', {
+                description: `Project "${window.gameState.project.name}" initialized with budget €${window.gameState.project.budget}k and duration ${window.gameState.project.duration} months`
+            });
+        };
+
+        const originalAddRisk = window.addRisk;
+        window.addRisk = function() {
+            const riskName = document.getElementById('riskName').value;
+            const riskType = document.getElementById('riskType').value;
+            if (riskName && riskType) {
+                originalAddRisk();
+                addLogEntry('risk-added', 'Risk Added', {
+                    description: `Added ${riskType} risk: "${riskName}"`
+                });
+            } else {
+                originalAddRisk();
+            }
+        };
+
+        const originalNextTurn = window.nextTurn;
+        window.nextTurn = function() {
+            const currentTurn = window.gameState.project.currentTurn + 1;
+            originalNextTurn();
+            addLogEntry('turn-start', `Turn ${currentTurn} Started`, {
+                description: `Starting turn ${currentTurn} of ${window.gameState.project.duration}`
+            });
+        };
+
+        const originalRespondToRisk = window.respondToRisk;
+        window.respondToRisk = function(eventId) {
+            const selectElement = document.getElementById(`select-${eventId}`);
+            const selectedResponse = selectElement.value;
+            const riskOccurrence = window.gameState.occurredRisks.find(r => r.id === eventId);
+            
+            if (riskOccurrence && selectedResponse) {
+                originalRespondToRisk(eventId);
+                addLogEntry('risk-response', 'Risk Response', {
+                    description: `Responded to "${riskOccurrence.risk.name}" with ${selectedResponse} strategy`
+                });
+            } else {
+                originalRespondToRisk(eventId);
+            }
+        };
+
+        // Add these functions for clearing leaderboard
+        function showClearConfirmation() {
+            document.getElementById('clearConfirmDialog').style.display = 'block';
+        }
+
+        function hideClearConfirmation() {
+            document.getElementById('clearConfirmDialog').style.display = 'none';
+        }
+
+        function clearLeaderboard() {
+            // Clear the game history from localStorage
+            localStorage.removeItem('riskGameHistory');
+            
+            // Update the leaderboard display
+            updateLeaderboard();
+            
+            // Hide the confirmation dialog
+            hideClearConfirmation();
+
+            // Reset the stats
+            document.getElementById('totalGames').textContent = '0';
+            document.getElementById('avgScore').textContent = '0%';
+            document.getElementById('topScore').textContent = '0%';
+
+            // Clear the leaderboard entries
+            document.getElementById('leaderboardEntries').innerHTML = '';
+        }
+
+        // Add escape key handler for the clear confirmation dialog
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                hideClearConfirmation();
+            }
+        });
+
+        window.handleResponseTypeChange = function(eventId) {
+            const selectElement = document.getElementById(`select-${eventId}`);
+            const customInput = document.getElementById(`custom-${eventId}`);
+            
+            if (selectElement.value === 'custom') {
+                customInput.classList.remove('hidden');
+                customInput.focus();
+            } else {
+                customInput.classList.add('hidden');
+            }
+        };
+
+        function toggleCustomResponse() {
+            const responseType = document.getElementById('riskResponseType').value;
+            const predefinedSelect = document.getElementById('riskResponse');
+            const customInput = document.getElementById('customResponse');
+
+            if (responseType === 'custom') {
+                predefinedSelect.classList.add('hidden');
+                customInput.classList.remove('hidden');
+                customInput.focus();
+            } else {
+                predefinedSelect.classList.remove('hidden');
+                customInput.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html> 
